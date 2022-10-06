@@ -14,7 +14,35 @@ $ pip install pyax
 
 ## Usage
 
-See `examples` directory for common uses.
+See `examples` directory for in-depth use.
+
+Here is what a basic interactive session could look like:
+
+```pycon
+>>> import pyax
+>>> app = pyax.get_application_by_name('Safari')
+>>> print(app)
+[AXApplication | Safari]
+>>> web_root = app.search_for(lambda e: e["AXRole"] == "AXWebArea")
+>>> print(web_root)
+[AXWebArea | ]
+>>> for child in web_root:
+...     print(child, child["AXDOMIdentifier"])
+[AXGroup | ] content
+[AXHeading | Navigation menu]
+[AXGroup | ] p-personal
+[AXGroup | ] p-namespaces
+[AXGroup | ] p-views
+[AXGroup | ] p-search
+[AXGroup | ] p-logo
+[AXGroup | ] p-navigation
+[AXGroup | ] p-interaction
+[AXGroup | ] p-tb
+[AXGroup | ] p-coll-print_export
+[AXGroup | ] p-wikibase-otherprojects
+[AXGroup | ] p-lang
+[AXGroup | ] footer
+```
 
 ## License
 
