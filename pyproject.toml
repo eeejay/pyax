@@ -1,0 +1,25 @@
+[project]
+name = "pyax"
+version = "0.1.0"
+description = "Client library for macOS accessibility"
+authors = [
+  { name="Eitan Isaacson", email="eitan@monotonous.org" },
+]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS :: MacOS X",
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/eeejay/pyax"
+"Bug Tracker" = "https://github.com/eeejay/pyax/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
