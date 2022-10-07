@@ -73,10 +73,8 @@ def get_application_by_name(name):
 def get_application_from_pid(pid):
     return AXUIElementCreateApplication(pid)
 
-def get_web_root(name):
-    app = get_application_by_name(name)
-    return app.search_for(lambda e: e["AXRole"] == "AXWebArea")
-
+def get_web_root(acc):
+    return acc.search_for(lambda e: e["AXRole"] == "AXWebArea")
 
 class AXUIElementMixin(object):
     _mix_into = AXUIElementRef
