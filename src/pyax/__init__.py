@@ -25,6 +25,7 @@ __version__ = "0.1.0"
 __all__ = [
     "get_applications",
     "get_application_by_name",
+    "get_application_from_pid",
     "get_web_root",
     "start",
     "stop",
@@ -36,6 +37,7 @@ __all__ = [
 from pyax._uielement import (
     get_applications,
     get_application_by_name,
+    get_application_from_pid,
     get_web_root,
     AXUIElementMixin,
 )

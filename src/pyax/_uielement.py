@@ -70,6 +70,8 @@ def get_application_by_name(name):
                 int((w.valueForKey_("kCGWindowOwnerPID")))
             )
 
+def get_application_from_pid(pid):
+    return AXUIElementCreateApplication(pid)
 
 def get_web_root(name):
     app = get_application_by_name(name)
