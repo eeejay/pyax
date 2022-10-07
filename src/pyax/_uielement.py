@@ -127,7 +127,7 @@ class AXUIElementMixin(object):
         "Returns the values of multiple attributes in the accessibility object."
         err, values = AXUIElementCopyMultipleAttributeValues(self, attributes, 0, None)
         rv = {}
-        for i, value in enumerate(values):
+        for i, value in enumerate(values or []):
             if isinstance(value, AXValueRef):
                 if AXValueGetType(value) == kAXValueAXErrorType:
                     continue
