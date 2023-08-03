@@ -162,6 +162,9 @@ class AXUIElementMixin(object):
     def __str__(self):
         return "[%s | %s]" % (self["AXRole"], self["AXTitle"])
 
+    def __bool__(self):
+        return True
+
     def search_for(self, match_func):
         "Recursively search in element's subtree for descendant that matches prerequisite"
         if match_func(self):
