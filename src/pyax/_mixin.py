@@ -56,6 +56,7 @@ def mix_class(new_cls, ignore=[]):
     delattr(new_cls, "_mix_into")
 
     # loop over all names in the new class
+    setattr(cls, "_mixed", {})
     for name, func in list(new_cls.__dict__.items()):
         if name in ignore:
             continue
@@ -76,7 +77,7 @@ def mix_class(new_cls, ignore=[]):
                 pass
             else:
                 # rename the old method so we can still call it if need be
-                setattr(cls, "_mix_" + name, old_method)
+                cls._mixed[name] = old_method
             # add the clone to cls
             setattr(cls, name, method)
         elif isinstance(func, staticmethod):
@@ -88,7 +89,7 @@ def mix_class(new_cls, ignore=[]):
                 pass
             else:
                 # rename the old method so we can still call it if need be
-                setattr(cls, "_mix_" + name, old_method)
+                cls._mixed[name] = old_method
             setattr(cls, name, func)
         elif isinstance(func, property):
             try:
@@ -105,6 +106,6 @@ def mix_class(new_cls, ignore=[]):
                 # get/set methods disappear before we can use them at a later
                 # time. This is a minor waste of memory because a property is
                 # a class object and we only overwrite a few of them.
-                setattr(cls, "_mix_" + name, old_prop)
+                cls._mixed[name] = old_method
             setattr(cls, name, func)
 
