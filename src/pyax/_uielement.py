@@ -42,6 +42,8 @@ from Quartz import (
     kCGWindowListExcludeDesktopElements,
     kCGNullWindowID,
 )
+from Cocoa import (NSArray, NSDictionary, NSURL)
+from objc import pyobjc_unicode
 
 __all__ = [
     "AXUIElementMixin",
@@ -76,6 +78,21 @@ def get_application_from_pid(pid):
 def get_web_root(acc):
     return acc.search_for(lambda e: e["AXRole"] == "AXWebArea")
 
+def _pythonify_value(val):
+  if isinstance(val, pyobjc_unicode):
+    return val
+  elif isinstance(val, NSDictionary):
+    keys = list(val)
+    return dict(zip(keys, [_pythonify_value(val[k]) for k in keys]))
+  elif isinstance(val, NSURL):
+    return str(val)
+  elif isinstance(val, NSArray):
+    return [_pythonify_value(v) for v in list(val)]
+  elif isinstance(val, AXValueRef):
+    return valueToDict(val)
+  else:
+    return val
+
 class AXUIElementMixin(object):
     _mix_into = AXUIElementRef
     # This hides all the useless attributes from AXUIElement.
@@ -102,14 +119,14 @@ class AXUIElementMixin(object):
     def get_attribute_value(self, attribute):
         "Returns the value of an accessibility object's attribute."
         err, value = AXUIElementCopyAttributeValue(self, attribute, None)
-        return value
+        return _pythonify_value(value)
 
     def get_attribute_parameterized_value(self, attribute, parameter):
         "Returns the value of an accessibility object's parameterized attribute."
         err, value = AXUIElementCopyParameterizedAttributeValue(
             self, attribute, parameter, None
         )
-        return value
+        return _pythonify_value(value)
 
     def __getitem__(self, key):
         """Returns the value of an accessibility object's attribute.
@@ -131,7 +148,7 @@ class AXUIElementMixin(object):
             if isinstance(value, AXValueRef):
                 if AXValueGetType(value) == kAXValueAXErrorType:
                     continue
-            rv[attributes[i]] = value
+            rv[attributes[i]] = _pythonify_value(value)
         return rv
 
     @property
@@ -143,7 +160,7 @@ class AXUIElementMixin(object):
     def get_action_description(self, action_name):
         "Returns a localized description of the specified accessibility object's action."
         err, result = AXUIElementCopyActionDescription(self, action_name, None)
-        return result
+        return _pythonify_value(value)
 
     def __len__(self):
         "Returns the children count."
