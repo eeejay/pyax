@@ -26,12 +26,12 @@ import pyax
 
 
 def tree_subrole_dump(element, indent=0):
-    print("%s%s AXRubrole=%s" % (indent * " ", element, element["AXSubrole"]))
+    print("%s%s '%s'" % (indent * " ", element, element["AXMozDebugDescription"]))
     for child in element:
         tree_subrole_dump(child, indent + 1)
 
 
 if __name__ == "__main__":
     app_name = sys.argv[-1]
-    acc = pyax.get_application_by_name(app_name)
+    acc = pyax.get_web_root(pyax.get_application_by_name(app_name))
     tree_subrole_dump(acc)
