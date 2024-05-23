@@ -36,6 +36,10 @@ from ApplicationServices import (
     AXValueRef,
     AXValueGetType,
     kAXValueAXErrorType,
+    kAXValueCFRangeType,
+    kAXValueCGPointType,
+    kAXValueCGRectType,
+    kAXValueCGSizeType
 )
 from Quartz import (
     CGWindowListCopyWindowInfo,
@@ -78,6 +82,20 @@ def get_application_from_pid(pid):
 def get_web_root(acc):
     return acc.search_for(lambda e: e["AXRole"] == "AXWebArea")
 
+def _valueToDict(val):
+  ax_attr_type = AXValueGetType(val)
+  ax_type_map = {
+    kAXValueCGSizeType: float,
+    kAXValueCGPointType: float,
+    kAXValueCFRangeType: int,
+    kAXValueCGRectType: float,
+  }
+  try:
+    matches = re.findall(r"(?:((\w+):(\S+)))+", val.description())
+    return dict([[m[1], ax_type_map[ax_attr_type](m[2])] for m in  matches])
+  except KeyError:
+    raise Exception('Return value not supported yet: {}'.format(val.description()))
+
 def _pythonify_value(val):
   if isinstance(val, pyobjc_unicode):
     return val
@@ -89,7 +107,7 @@ def _pythonify_value(val):
   elif isinstance(val, NSArray):
     return [_pythonify_value(v) for v in list(val)]
   elif isinstance(val, AXValueRef):
-    return valueToDict(val)
+    return _valueToDict(val)
   else:
     return val
 
