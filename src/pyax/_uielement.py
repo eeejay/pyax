@@ -39,14 +39,16 @@ from ApplicationServices import (
     kAXValueCFRangeType,
     kAXValueCGPointType,
     kAXValueCGRectType,
-    kAXValueCGSizeType
+    kAXValueCGSizeType,
+    AXCustomContent
 )
 from Quartz import (
     CGWindowListCopyWindowInfo,
     kCGWindowListExcludeDesktopElements,
     kCGNullWindowID,
 )
-from Cocoa import (NSArray, NSDictionary, NSURL)
+from Cocoa import (NSArray, NSDictionary, NSURL, NSData)
+from Foundation import NSKeyedUnarchiver
 from objc import pyobjc_unicode
 
 __all__ = [
@@ -108,6 +110,11 @@ def _pythonify_value(val):
     return [_pythonify_value(v) for v in list(val)]
   elif isinstance(val, AXValueRef):
     return _valueToDict(val)
+  elif isinstance(val, NSData):
+    try:
+        return NSKeyedUnarchiver.unarchiveObjectWithData_(val)
+    except:
+        return val
   else:
     return val
 
