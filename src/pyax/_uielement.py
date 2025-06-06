@@ -53,6 +53,7 @@ from objc import pyobjc_unicode
 
 __all__ = [
     "AXUIElementMixin",
+    "AXCustomContentMixin",
     "get_applications",
     "get_application_by_name",
     "get_web_root",
@@ -112,11 +113,16 @@ def _pythonify_value(val):
     return _valueToDict(val)
   elif isinstance(val, NSData):
     try:
-        return NSKeyedUnarchiver.unarchiveObjectWithData_(val)
+        return _pythonify_value(NSKeyedUnarchiver.unarchiveObjectWithData_(val))
     except:
         return val
   else:
     return val
+
+class AXCustomContentMixin(object):
+    _mix_into = AXCustomContent
+    def __repr__(self):
+        return "AXCustomContent(%s)" % (str({self.label(): self.value()}))
 
 class AXUIElementMixin(object):
     _mix_into = AXUIElementRef

@@ -40,10 +40,12 @@ from pyax._uielement import (
     get_application_from_pid,
     get_web_root,
     AXUIElementMixin,
+    AXCustomContentMixin
 )
 from pyax._observer import start, stop, create_observer, AXObserverMixin
 from pyax._constants import EVENTS
 
 from pyax._mixin import mix_class
 mix_class(AXUIElementMixin)
+mix_class(AXCustomContentMixin)
 mix_class(AXObserverMixin)
