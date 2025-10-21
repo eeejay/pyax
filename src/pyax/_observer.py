@@ -47,7 +47,7 @@ __all__ = ["start", "stop", "Observer"]
 
 _SIGNAL_HANDLERS_ATTACHED = False
 
-def stop():
+def stop(*args):
     "Stop event loop"
     CFRunLoopStop(CFRunLoopGetCurrent())
 
