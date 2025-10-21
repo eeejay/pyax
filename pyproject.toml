@@ -15,9 +15,12 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
 ]
 dependencies = [
-    "pyobjc-framework-ApplicationServices>=10.1"
+    "pyobjc-framework-ApplicationServices>=10.1",
+    "typer>=0.20.0"
 ]
 
+[project.scripts]
+"pyax" = "pyax.__main__:app"
 
 [project.urls]
 "Homepage" = "https://github.com/eeejay/pyax"
