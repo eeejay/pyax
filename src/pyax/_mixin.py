@@ -21,20 +21,24 @@
 # THE SOFTWARE.
 
 import types, re
-from typing import Type
 from ApplicationServices import (
-    AXUIElementRef,
-    AXUIElementCopyAttributeNames,
-    AXUIElementCopyAttributeValue,
-    AXUIElementCopyParameterizedAttributeValue,
-    AXUIElementIsAttributeSettable,
-    AXUIElementCopyActionNames,
-    AXUIElementSetAttributeValue,
-)
+    AXCustomContent,
+    AXValueRef,
+    AXTextMarkerRef,
+    AXTextMarkerRangeRef,
+    AXValueGetType,
+    kAXValueCFRangeType,
+    kAXValueCGPointType,
+    kAXValueCGRectType,
+    kAXValueCGSizeType)
 
-__all__ = ["mix_class"]
+from Cocoa import NSDictionary, NSURL, NSArray
+from pyax._uielement import AXUIElementMixin
+from pyax._observer import AXObserverMixin
 
-def mix_class(new_cls, ignore=[]):
+__all__ = ["mix_classes"]
+
+def _mix_class(new_cls, ignore=[]):
     """
     Adds the methods in new_cls to cls. After mixing, all instances of cls will
     have the new methods. If there is a method name clash, the method already
@@ -109,3 +113,79 @@ def mix_class(new_cls, ignore=[]):
                 cls._mixed[name] = old_method
             setattr(cls, name, func)
 
+
+class NSDictionaryMixin(object):
+    _mix_into = NSDictionary
+    def __repr__(self):
+        keys = list(self)
+        return repr(dict(zip(keys, [self[k] for k in keys])))
+
+class NSURLMixin(object):
+    _mix_into = NSURL
+    def __repr__(self):
+        return repr(self.description())
+
+class AXTextMarkerMixin(object):
+    _mix_into = AXTextMarkerRef
+    def __repr__(self):
+        address = re.findall(r"<AXTextMarker (0x[0-9a-f]+) \[0x[0-9a-f]+\]", self.description())[0]
+        return f"AXTextMarker({address})"
+
+class AXTextMarkerRangeMixin(object):
+    _mix_into = AXTextMarkerRangeRef
+    def __repr__(self):
+        address = re.findall(r"<AXTextMarkerRange (0x[0-9a-f]+) \[0x[0-9a-f]+\]", self.description())[0]
+        return f"AXTextMarkerRange({address})"
+
+class NSArrayMixin(object):
+    _mix_into = NSArray
+    def __repr__(self):
+        return repr(list(self))
+
+class AXCustomContentMixin(object):
+    _mix_into = AXCustomContent
+    def __repr__(self):
+        return "AXCustomContent(%s)" % (str({self.label(): self.value()}))
+
+class AXValueRefMixin(object):
+    _mix_into = AXValueRef
+
+    _ax_type_map = {
+        kAXValueCGSizeType: (float, "Size"),
+        kAXValueCGPointType: (float, "Point"),
+        kAXValueCFRangeType: (int, "Range"),
+        kAXValueCGRectType: (float, "Rect"),
+    }
+
+    def value_type(self):
+        ax_attr_type = AXValueGetType(self)
+        try:
+            return AXValueRefMixin._ax_type_map[ax_attr_type][1]
+        except KeyError:
+            raise Exception('Value type not supported yet: {}'.format(self.description()))
+
+    def to_dict(self):
+        ax_attr_type = AXValueGetType(self)
+        try:
+            matches = re.findall(r"(?:((\w+):(\S+)))+", self.description())
+            return dict([[m[1], AXValueRefMixin._ax_type_map[ax_attr_type][0](m[2])] for m in  matches])
+        except KeyError:
+            raise Exception('Value type not supported yet: {}'.format(self.description()))
+
+    def __repr__(self):
+        return f"AXValue({self.value_type()}({repr(self.to_dict())}))"
+
+    def __getitem__(self, key):
+        return self.to_dict()[key]
+
+
+def mix_classes():
+    _mix_class(AXUIElementMixin)
+    _mix_class(AXCustomContentMixin)
+    _mix_class(AXObserverMixin)
+    _mix_class(NSDictionaryMixin)
+    _mix_class(NSURLMixin)
+    _mix_class(NSArrayMixin)
+    _mix_class(AXValueRefMixin)
+    _mix_class(AXTextMarkerMixin)
+    _mix_class(AXTextMarkerRangeMixin)

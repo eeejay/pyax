@@ -36,29 +36,30 @@ from ApplicationServices import (
     AXValueRef,
     AXValueGetType,
     kAXValueAXErrorType,
-    kAXValueCFRangeType,
-    kAXValueCGPointType,
-    kAXValueCGRectType,
-    kAXValueCGSizeType,
-    AXCustomContent
 )
 from Quartz import (
     CGWindowListCopyWindowInfo,
     kCGWindowListExcludeDesktopElements,
     kCGNullWindowID,
 )
-from Cocoa import (NSArray, NSDictionary, NSURL, NSData)
 from Foundation import NSKeyedUnarchiver
-from objc import pyobjc_unicode
+from Cocoa import NSData
 
 __all__ = [
     "AXUIElementMixin",
-    "AXCustomContentMixin",
     "get_applications",
     "get_application_by_name",
     "get_web_root",
 ]
 
+def _unarchiveObject(val):
+  if isinstance(val, NSData):
+    try:
+        return NSKeyedUnarchiver.unarchiveObjectWithData_(val)
+    except:
+        return val
+  else:
+    return val
 
 def get_applications():
     wl = CGWindowListCopyWindowInfo(
@@ -84,45 +85,6 @@ def get_application_from_pid(pid):
 
 def get_web_root(acc):
     return acc.search_for(lambda e: e["AXRole"] == "AXWebArea")
-
-def _valueToDict(val):
-  ax_attr_type = AXValueGetType(val)
-  ax_type_map = {
-    kAXValueCGSizeType: float,
-    kAXValueCGPointType: float,
-    kAXValueCFRangeType: int,
-    kAXValueCGRectType: float,
-  }
-  try:
-    matches = re.findall(r"(?:((\w+):(\S+)))+", val.description())
-    return dict([[m[1], ax_type_map[ax_attr_type](m[2])] for m in  matches])
-  except KeyError:
-    raise Exception('Return value not supported yet: {}'.format(val.description()))
-
-def _pythonify_value(val):
-  if isinstance(val, pyobjc_unicode):
-    return val
-  elif isinstance(val, NSDictionary):
-    keys = list(val)
-    return dict(zip(keys, [_pythonify_value(val[k]) for k in keys]))
-  elif isinstance(val, NSURL):
-    return str(val)
-  elif isinstance(val, NSArray):
-    return [_pythonify_value(v) for v in list(val)]
-  elif isinstance(val, AXValueRef):
-    return _valueToDict(val)
-  elif isinstance(val, NSData):
-    try:
-        return _pythonify_value(NSKeyedUnarchiver.unarchiveObjectWithData_(val))
-    except:
-        return val
-  else:
-    return val
-
-class AXCustomContentMixin(object):
-    _mix_into = AXCustomContent
-    def __repr__(self):
-        return "AXCustomContent(%s)" % (str({self.label(): self.value()}))
 
 class AXUIElementMixin(object):
     _mix_into = AXUIElementRef
@@ -150,14 +112,14 @@ class AXUIElementMixin(object):
     def get_attribute_value(self, attribute):
         "Returns the value of an accessibility object's attribute."
         err, value = AXUIElementCopyAttributeValue(self, attribute, None)
-        return _pythonify_value(value)
+        return _unarchiveObject(value)
 
     def get_attribute_parameterized_value(self, attribute, parameter):
         "Returns the value of an accessibility object's parameterized attribute."
         err, value = AXUIElementCopyParameterizedAttributeValue(
             self, attribute, parameter, None
         )
-        return _pythonify_value(value)
+        return _unarchiveObject(value)
 
     def __getitem__(self, key):
         """Returns the value of an accessibility object's attribute.
@@ -179,7 +141,7 @@ class AXUIElementMixin(object):
             if isinstance(value, AXValueRef):
                 if AXValueGetType(value) == kAXValueAXErrorType:
                     continue
-            rv[attributes[i]] = _pythonify_value(value)
+            rv[attributes[i]] = _unarchiveObject(value)
         return rv
 
     @property
@@ -191,7 +153,7 @@ class AXUIElementMixin(object):
     def get_action_description(self, action_name):
         "Returns a localized description of the specified accessibility object's action."
         err, result = AXUIElementCopyActionDescription(self, action_name, None)
-        return _pythonify_value(value)
+        return result
 
     def __len__(self):
         "Returns the children count."
@@ -207,8 +169,13 @@ class AXUIElementMixin(object):
     def parent(self):
         return self["AXParent"]
 
-    def __str__(self):
-        return "[%s | %s]" % (self["AXRole"], self["AXTitle"])
+    def __repr__(self):
+        attrs = {}
+        for attr in ["AXTitle", "AXDescription", "AXValue"]:
+            val = self[attr]
+            if val:
+                attrs[attr] = val
+        return "AXUIElement(%s: %s)" % (self["AXRole"], " ".join([f"{k}={repr(attrs[k])}" for k in attrs]))
 
     def __bool__(self):
         return True
@@ -227,6 +194,6 @@ class AXUIElementMixin(object):
     @property
     def pid(self):
         try:
-            return int(re.search(r"pid=(\d+)", repr(self)).group(1))
+            return int(re.search(r"pid=(\d+)", self._mixed["__repr__"](self)).group(1))
         except:
             return 0
