@@ -33,6 +33,7 @@ from ApplicationServices import (
     AXUIElementCreateApplication,
     AXUIElementCopyMultipleAttributeValues,
     AXUIElementCopyActionDescription,
+    AXUIElementPerformAction,
     AXValueRef,
     AXValueGetType,
     kAXValueAXErrorType,
@@ -153,6 +154,11 @@ class AXUIElementMixin(object):
     def get_action_description(self, action_name):
         "Returns a localized description of the specified accessibility object's action."
         err, result = AXUIElementCopyActionDescription(self, action_name, None)
+        return result
+
+    def perform_action(self, action_name):
+        "Performs the specified action on the accessibility object."
+        result = AXUIElementPerformAction(self, action_name)
         return result
 
     def __len__(self):
