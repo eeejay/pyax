@@ -20,40 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import sys
 import typer
 from typing_extensions import Annotated
-from . import get_web_root, get_application_by_name, create_observer, start, EVENTS
-from ._cli import json_dump, tree_dump, create_notification_dumper, DEFAULT_ATTRIBUTES
 from typing import List
-from rich import print
-from rich.json import JSON
+from ._cli import tree as cli_tree
+from ._cli import observe as cli_observe
+from ._cli import DEFAULT_ATTRIBUTES
 
 app = typer.Typer()
-
-def _print_error_and_exit(s):
-    print(f"Error: {s}", file=sys.stderr)
-    sys.exit(1)
-
-
-def _get_target_application(app_name):
-    app = get_application_by_name(app_name)
-    if not app:
-        _print_error_and_exit(f"application '{app_name}' not found")
-    return app
-
-def _get_target_uielement(app, web, dom_id):
-    element = app
-    if web or dom_id:
-        element = get_web_root(element)
-        if not element:
-            _print_error_and_exit(f"application '{app_name}' does not have a web area")
-    if dom_id:
-        element = element.search_for(lambda e: e["AXDOMIdentifier"] == dom_id)
-        if not element:
-            _print_error_and_exit(f"can't find '{dom_id}' DOM identifier in tree")
-
-    return element
 
 @app.command()
 def tree(app_name: Annotated[str, typer.Argument(help="Application to examine")],
@@ -64,12 +38,7 @@ def tree(app_name: Annotated[str, typer.Argument(help="Application to examine")]
          list_attributes: Annotated[bool, typer.Option(help="List available attributes on each node")] = False,
          list_actions: Annotated[bool, typer.Option(help="List available actions and their description on each node")] = False,
          json: Annotated[bool, typer.Option(help="Output in JSON format")] = False):
-    element = _get_target_uielement(_get_target_application(app_name), web, dom_id)
-
-    if json:
-        json_dump(element, attributes, all_attributes, list_attributes, list_actions)
-    else:
-        tree_dump(element, attributes, all_attributes, list_attributes, list_actions)
+    cli_tree(app_name, web, dom_id, attributes, all_attributes, list_attributes, list_actions, json)
 
 @app.command()
 def observe(app_name: Annotated[str, typer.Argument(help="Application to examine")],
@@ -79,10 +48,7 @@ def observe(app_name: Annotated[str, typer.Argument(help="Application to examine
             list_attributes: Annotated[bool, typer.Option(help="List available attributes on each node")] = False,
             list_actions: Annotated[bool, typer.Option(help="List available actions and their description on each node")] = False,
             print_info: Annotated[bool, typer.Option(help="Print bundled notification info")] = False):
-    app = get_application_by_name(app_name)
-    observer = create_observer(app.pid, create_notification_dumper(attributes, print_info, all_attributes, list_attributes, list_actions))
-    observer.add_notifications(*(events or EVENTS))
-    start()
+    cli_observe(app_name, events, attributes, all_attributes, list_attributes, list_actions, print_info)
 
 
 if __name__ == "__main__":
