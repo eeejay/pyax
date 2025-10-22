@@ -53,8 +53,7 @@ EVENTS = [
     "AXDropEffectChanged",
     "AXElementBusyChanged",
     "AXExpandedChanged",
-    "AXExtendedDescriptionChanged"
-    "AXFlowToChanged",
+    "AXExtendedDescriptionChanged" "AXFlowToChanged",
     "AXFocusableStateChanged",
     "AXFocusedUIElementChanged",
     "AXFocusedWindowChanged",
@@ -134,4 +133,4 @@ EVENTS = [
     "AXWindowMiniaturized",
     "AXWindowMoved",
     "AXWindowResized",
- ]
+]

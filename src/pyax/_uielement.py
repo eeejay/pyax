@@ -55,14 +55,16 @@ __all__ = [
     "get_element_at_position",
 ]
 
+
 def _unarchiveObject(val):
-  if isinstance(val, NSData):
-    try:
-        return NSKeyedUnarchiver.unarchiveObjectWithData_(val)
-    except:
+    if isinstance(val, NSData):
+        try:
+            return NSKeyedUnarchiver.unarchiveObjectWithData_(val)
+        except Exception:
+            return val
+    else:
         return val
-  else:
-    return val
+
 
 def get_applications():
     wl = CGWindowListCopyWindowInfo(
@@ -77,27 +79,31 @@ def get_application_by_name(name):
         kCGWindowListExcludeDesktopElements, kCGNullWindowID
     )
     for w in wl:
-        n = w.valueForKey_("kCGWindowOwnerName")
         if name == w.valueForKey_("kCGWindowOwnerName"):
             return AXUIElementCreateApplication(
                 int((w.valueForKey_("kCGWindowOwnerPID")))
             )
 
+
 def get_application_from_pid(pid):
     return AXUIElementCreateApplication(pid)
 
+
 def get_web_root(acc):
     return acc.search_for(lambda e: e["AXRole"] == "AXWebArea")
+
 
 def get_element_at_position(app, x, y):
     err, element = AXUIElementCopyElementAtPosition(app, x, y, None)
     return element
 
+
 class AXUIElementMixin(object):
     _mix_into = AXUIElementRef
+
     # This hides all the useless attributes from AXUIElement.
     def __dir__(self):
-        return dir(_AXUIElementMixin)
+        return dir(AXUIElementMixin)
 
     @property
     def attribute_names(self):
@@ -138,7 +144,7 @@ class AXUIElementMixin(object):
 
     def __setitem__(self, key, value):
         "Sets the accessibility object's attribute to the specified value."
-        err = AXUIElementSetAttributeValue(self, key, value)
+        AXUIElementSetAttributeValue(self, key, value)
 
     def get_multiple_attribute_values(self, *attributes):
         "Returns the values of multiple attributes in the accessibility object."
@@ -187,7 +193,10 @@ class AXUIElementMixin(object):
             val = self[attr]
             if val:
                 attrs[attr] = val
-        return "AXUIElement(%s: %s)" % (self["AXRole"], " ".join([f"{k}={repr(attrs[k])}" for k in attrs]))
+        return "AXUIElement(%s: %s)" % (
+            self["AXRole"],
+            " ".join([f"{k}={repr(attrs[k])}" for k in attrs]),
+        )
 
     def __bool__(self):
         return True
@@ -207,5 +216,5 @@ class AXUIElementMixin(object):
     def pid(self):
         try:
             return int(re.search(r"pid=(\d+)", self._mixed["__repr__"](self)).group(1))
-        except:
+        except Exception:
             return 0

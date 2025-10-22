@@ -20,14 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import sys
 
 from PyQt6 import QtGui, QtCore
 from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt6.QtWidgets import QMainWindow
+
 
 class Highlighter(QMainWindow):
     app = None
+
     def __init__(self, mouse_move_callback=None, click_callback=None):
         QMainWindow.__init__(self)
 
@@ -38,16 +39,14 @@ class Highlighter(QMainWindow):
         )
 
         self.setWindowFlags(
-            QtCore.Qt.WindowType.WindowStaysOnTopHint |
-            QtCore.Qt.WindowType.FramelessWindowHint |
-            QtCore.Qt.WindowType.BypassWindowManagerHint |
-            QtCore.Qt.WindowType.NoDropShadowWindowHint |
-            QtCore.Qt.WindowType.ExpandedClientAreaHint |
-            transparent_for_input
+            QtCore.Qt.WindowType.WindowStaysOnTopHint
+            | QtCore.Qt.WindowType.FramelessWindowHint
+            | QtCore.Qt.WindowType.BypassWindowManagerHint
+            | QtCore.Qt.WindowType.NoDropShadowWindowHint
+            | QtCore.Qt.WindowType.ExpandedClientAreaHint
+            | transparent_for_input
         )
-        self.setGeometry(
-                QtGui.QGuiApplication.primaryScreen().availableGeometry()
-        )
+        self.setGeometry(QtGui.QGuiApplication.primaryScreen().availableGeometry())
 
         self.setStyleSheet("background-color: rgba(255, 0, 255, 0);")
 
@@ -56,7 +55,7 @@ class Highlighter(QMainWindow):
         if self.mouse_move_callback:
             self.setMouseTracking(True)
 
-        self.offset = 0;
+        self.offset = 0
         self.label = QtWidgets.QLabel()
         self.label.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         canvas = QtGui.QPixmap(QtGui.QGuiApplication.primaryScreen().availableSize())
@@ -81,13 +80,15 @@ class Highlighter(QMainWindow):
         self.label.setPixmap(canvas)
 
     def _normalize_alpha(self, colorstring):
-      if colorstring.startswith("#") and len(colorstring) == 9:
-          # QT expects an alpha color hex value in the format of #aarrggbb,
-          # when the rest of the world expects #rrggbbaa
-          return '#' + colorstring[-2:] + colorstring[1:-2]
-      return colorstring
+        if colorstring.startswith("#") and len(colorstring) == 9:
+            # QT expects an alpha color hex value in the format of #aarrggbb,
+            # when the rest of the world expects #rrggbbaa
+            return "#" + colorstring[-2:] + colorstring[1:-2]
+        return colorstring
 
-    def draw_rect(self, rect, fill="#00000000", stroke="#EB5160", stroke_width=1, flip_y=False):
+    def draw_rect(
+        self, rect, fill="#00000000", stroke="#EB5160", stroke_width=1, flip_y=False
+    ):
         if not rect:
             return
         canvas = self.label.pixmap()
@@ -106,11 +107,8 @@ class Highlighter(QMainWindow):
         y = (
             rect["y"] - self.y()
             if not flip_y
-            else QtGui.QGuiApplication.primaryScreen().size().height()
-            - rect["y"]
+            else QtGui.QGuiApplication.primaryScreen().size().height() - rect["y"]
         )
-        painter.drawRect(
-            rect["x"] - self.x(), y, rect["w"], rect["h"]
-        )
+        painter.drawRect(rect["x"] - self.x(), y, rect["w"], rect["h"])
         painter.end()
         self.label.setPixmap(canvas)

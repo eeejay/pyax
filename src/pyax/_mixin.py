@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import types, re
+import types
+import re
 from ApplicationServices import (
     AXCustomContent,
     AXValueRef,
@@ -30,13 +31,15 @@ from ApplicationServices import (
     kAXValueCFRangeType,
     kAXValueCGPointType,
     kAXValueCGRectType,
-    kAXValueCGSizeType)
+    kAXValueCGSizeType,
+)
 
 from Cocoa import NSDictionary, NSURL, NSArray
 from pyax._uielement import AXUIElementMixin
 from pyax._observer import AXObserverMixin
 
 __all__ = ["mix_classes"]
+
 
 def _mix_class(new_cls, ignore=[]):
     """
@@ -99,7 +102,7 @@ def _mix_class(new_cls, ignore=[]):
             try:
                 # check if a method of the same name already exists
                 # in the target
-                old_prop = getattr(cls, name)
+                getattr(cls, name)
             except AttributeError:
                 pass
             else:
@@ -116,6 +119,7 @@ def _mix_class(new_cls, ignore=[]):
 
 class NSDictionaryMixin(object):
     _mix_into = NSDictionary
+
     def __repr__(self):
         keys = list(self)
         return repr(dict(zip(keys, [self[k] for k in keys])))
@@ -124,44 +128,59 @@ class NSDictionaryMixin(object):
         keys = list(self)
         return dict(zip(keys, [self[k] for k in keys]))
 
+
 class NSURLMixin(object):
     _mix_into = NSURL
+
     def __repr__(self):
         return repr(self.description())
 
+
 class AXTextMarkerMixin(object):
     _mix_into = AXTextMarkerRef
+
     def __repr__(self):
-        address = re.findall(r"<AXTextMarker (0x[0-9a-f]+) \[0x[0-9a-f]+\]", self.description())[0]
+        address = re.findall(
+            r"<AXTextMarker (0x[0-9a-f]+) \[0x[0-9a-f]+\]", self.description()
+        )[0]
         return f"AXTextMarker({address})"
 
     def serializable(self):
         return "<AXTextMarker>"
 
+
 class AXTextMarkerRangeMixin(object):
     _mix_into = AXTextMarkerRangeRef
+
     def __repr__(self):
-        address = re.findall(r"<AXTextMarkerRange (0x[0-9a-f]+) \[0x[0-9a-f]+\]", self.description())[0]
+        address = re.findall(
+            r"<AXTextMarkerRange (0x[0-9a-f]+) \[0x[0-9a-f]+\]", self.description()
+        )[0]
         return f"AXTextMarkerRange({address})"
 
     def serializable(self):
         return "<AXTextMarkerRange>"
 
+
 class NSArrayMixin(object):
     _mix_into = NSArray
+
     def __repr__(self):
         return repr(list(self))
 
     def serializable(self):
         return list(self)
 
+
 class AXCustomContentMixin(object):
     _mix_into = AXCustomContent
+
     def __repr__(self):
         return "AXCustomContent(%s)" % (str({self.label(): self.value()}))
 
     def serializable(self):
         return {self.label(): self.value()}
+
 
 class AXValueRefMixin(object):
     _mix_into = AXValueRef
@@ -178,15 +197,24 @@ class AXValueRefMixin(object):
         try:
             return AXValueRefMixin._ax_type_map[ax_attr_type][1]
         except KeyError:
-            raise Exception('Value type not supported yet: {}'.format(self.description()))
+            raise Exception(
+                "Value type not supported yet: {}".format(self.description())
+            )
 
     def to_dict(self):
         ax_attr_type = AXValueGetType(self)
         try:
             matches = re.findall(r"(?:((\w+):(\S+)))+", self.description())
-            return dict([[m[1], AXValueRefMixin._ax_type_map[ax_attr_type][0](m[2])] for m in  matches])
+            return dict(
+                [
+                    [m[1], AXValueRefMixin._ax_type_map[ax_attr_type][0](m[2])]
+                    for m in matches
+                ]
+            )
         except KeyError:
-            raise Exception('Value type not supported yet: {}'.format(self.description()))
+            raise Exception(
+                "Value type not supported yet: {}".format(self.description())
+            )
 
     def serializable(self):
         return self.to_dict()

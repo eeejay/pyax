@@ -27,10 +27,13 @@ try:
 except ModuleNotFoundError:
     Highlighter = None
 
+
 def get_element_with_mouse(app, hover_callback=None):
     if not Highlighter:
-        raise NotImplementedError("'highlight' pyax extra is required for `get_element_with_mouse`")
-    app_element = get_application_by_name(app) if type(app) == str else app
+        raise NotImplementedError(
+            "'highlight' pyax extra is required for `get_element_with_mouse`"
+        )
+    app_element = get_application_by_name(app) if type(app) is str else app
     element = None
 
     def _mm(x, y):
@@ -41,7 +44,9 @@ def get_element_with_mouse(app, hover_callback=None):
         if not elem:
             return
         highlighter.clear()
-        highlighter.draw_rect(elem["AXFrame"], fill="#1982C455", stroke="#1982C4", stroke_width=1)
+        highlighter.draw_rect(
+            elem["AXFrame"], fill="#1982C455", stroke="#1982C4", stroke_width=1
+        )
         if hover_callback:
             hover_callback(elem)
 

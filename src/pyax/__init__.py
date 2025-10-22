@@ -32,7 +32,7 @@ __all__ = [
     "stop",
     "create_observer",
     "AXObserverMixin",
-    "EVENTS"
+    "EVENTS",
 ]
 
 from pyax._uielement import (
@@ -40,10 +40,11 @@ from pyax._uielement import (
     get_application_by_name,
     get_application_from_pid,
     get_element_at_position,
-    get_web_root
+    get_web_root,
 )
 from pyax._observer import start, stop, create_observer, AXObserverMixin
 from pyax._constants import EVENTS
 
 from pyax._mixin import mix_classes
+
 mix_classes()
