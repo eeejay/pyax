@@ -34,6 +34,7 @@ from ApplicationServices import (
     AXUIElementCopyMultipleAttributeValues,
     AXUIElementCopyActionDescription,
     AXUIElementPerformAction,
+    AXUIElementCopyElementAtPosition,
     AXValueRef,
     AXValueGetType,
     kAXValueAXErrorType,
@@ -51,6 +52,7 @@ __all__ = [
     "get_applications",
     "get_application_by_name",
     "get_web_root",
+    "get_element_at_position",
 ]
 
 def _unarchiveObject(val):
@@ -86,6 +88,10 @@ def get_application_from_pid(pid):
 
 def get_web_root(acc):
     return acc.search_for(lambda e: e["AXRole"] == "AXWebArea")
+
+def get_element_at_position(app, x, y):
+    err, element = AXUIElementCopyElementAtPosition(app, x, y, None)
+    return element
 
 class AXUIElementMixin(object):
     _mix_into = AXUIElementRef

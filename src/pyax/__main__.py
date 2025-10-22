@@ -25,6 +25,7 @@ from typing_extensions import Annotated
 from typing import List
 from ._cli import tree as cli_tree
 from ._cli import observe as cli_observe
+from ._cli import inspect as cli_inspect
 from ._cli import DEFAULT_ATTRIBUTES
 
 app = typer.Typer()
@@ -50,6 +51,16 @@ def observe(app_name: Annotated[str, typer.Argument(help="Application to examine
             print_info: Annotated[bool, typer.Option(help="Print bundled notification info")] = False):
     cli_observe(app_name, events, attributes, all_attributes, list_attributes, list_actions, print_info)
 
+@app.command()
+def inspect(app_name: Annotated[str, typer.Argument(help="Application to examine")],
+            dom_id: Annotated[str, typer.Option(help="Only output subtree of DOM node ID")] = None,
+            attributes: Annotated[List[str], typer.Option("--attribute", "-a", help="Show provided attributes")] = DEFAULT_ATTRIBUTES,
+            all_attributes: Annotated[bool, typer.Option(help="Show all available attribute values on each node")] = False,
+            list_attributes: Annotated[bool, typer.Option(help="List available attributes on each node")] = False,
+            list_actions: Annotated[bool, typer.Option(help="List available actions and their description on each node")] = False,
+            show_subtree: Annotated[bool, typer.Option(help="Print the subtree of the inspected element")] = False,
+            json: Annotated[bool, typer.Option(help="Output in JSON format")] = False):
+    cli_inspect(app_name, dom_id, attributes, all_attributes, list_attributes, list_actions, show_subtree, json)
 
 if __name__ == "__main__":
     app()

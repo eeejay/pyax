@@ -27,6 +27,7 @@ __all__ = [
     "get_application_by_name",
     "get_application_from_pid",
     "get_web_root",
+    "get_element_at_position",
     "start",
     "stop",
     "create_observer",
@@ -38,6 +39,7 @@ from pyax._uielement import (
     get_applications,
     get_application_by_name,
     get_application_from_pid,
+    get_element_at_position,
     get_web_root
 )
 from pyax._observer import start, stop, create_observer, AXObserverMixin

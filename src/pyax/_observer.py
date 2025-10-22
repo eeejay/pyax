@@ -41,7 +41,14 @@ from Quartz import (
     kCFRunLoopCommonModes,
     kCFRunLoopDefaultMode,
 )
-import os, fcntl, re
+import os, fcntl, re, sys
+
+try:
+    from PyQt6.QtWidgets import QApplication
+except ImportError:
+    app = None
+else:
+    app = QApplication(sys.argv)
 
 __all__ = ["start", "stop", "Observer"]
 
@@ -49,7 +56,10 @@ _SIGNAL_HANDLERS_ATTACHED = False
 
 def stop(*args):
     "Stop event loop"
-    CFRunLoopStop(CFRunLoopGetCurrent())
+    if app:
+        app.quit()
+    else:
+        CFRunLoopStop(CFRunLoopGetCurrent())
 
 def _handle_signals():
     global _SIGNAL_HANDLERS_ATTACHED
@@ -80,7 +90,10 @@ def _handle_signals():
 def start():
     "Start event loop"
     _handle_signals()
-    CFRunLoopRun()
+    if app:
+        app.exec()
+    else:
+        CFRunLoopRun()
 
 def create_observer(pid, callback, cfrunloop=None):
     """Create an observer for the given PID using the given callback for notifications.

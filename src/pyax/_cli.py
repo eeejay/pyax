@@ -20,12 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from rich import print
+from rich.console import Console
 from rich.json import JSON
 from . import get_web_root, get_application_by_name, create_observer, start, EVENTS
+from .utils import get_element_with_mouse
 import sys
 
 DEFAULT_ATTRIBUTES = ["AXRole", "AXTitle", "AXValue"]
+
+_CONSOLE = Console()
 
 def _print_error_and_exit(s):
     print(f"Error: {s}", file=sys.stderr)
@@ -75,32 +78,40 @@ def _json_dump_inner(element, attributes, all_attributes, list_attributes, list_
     obj["AXChildren"] = [_json_dump_inner(child, attributes, all_attributes, list_attributes, list_actions) for child in element]
     return obj
 
-def json_dump(element, attributes, all_attributes, list_attributes, list_actions):
+def _json_dump(element, attributes, all_attributes, list_attributes, list_actions, show_subtree = True):
     attrs = element.attribute_names if all_attributes else attributes[:]
-    data = _json_dump_inner(element, attrs, all_attributes, list_attributes, list_actions)
-    print(JSON.from_data(data, default=_default_json_encoder))
+    data = (
+        _element_to_dict(element, attrs, all_attributes, list_attributes, list_actions)
+        if not show_subtree
+        else _json_dump_inner(
+            element, attrs, all_attributes, list_attributes, list_actions
+        )
+    )
+    _CONSOLE.print(JSON.from_data(data, default=_default_json_encoder))
 
-def tree_dump(element, attributes, all_attributes, list_attributes, list_actions, indent=0):
+def _tree_dump(element, attributes, all_attributes, list_attributes, list_actions, indent=0, show_subtree = True):
     obj = _element_to_dict(element, attributes, all_attributes, list_attributes, list_actions)
-    if "AXChildren" in obj:
+    if "AXChildren" in obj and show_subtree:
         obj.pop("AXChildren")
     to_print = _obj_to_pretty_string(element, obj)
-    print(f"{indent * ' '}{to_print}")
+    _CONSOLE.print(f"{indent * ' '}{to_print}")
+    if not show_subtree:
+        return
 
     for child in element:
-        tree_dump(child, attributes, all_attributes, list_attributes, list_actions, indent + 1)
+        _tree_dump(child, attributes, all_attributes, list_attributes, list_actions, indent + 1)
 
-def create_notification_dumper(attributes, print_info, all_attributes, list_attributes, list_actions):
+def _create_notification_dumper(attributes, print_info, all_attributes, list_attributes, list_actions):
     def dump_notification(_, element, notificationName, info):
         obj = _element_to_dict(element, attributes, all_attributes, list_attributes, list_actions)
         if "AXChildren" in obj:
             obj.pop("AXChildren")
         to_print = _obj_to_pretty_string(element, obj, "red")
-        print(f"[bold]{notificationName.ljust(25)}[/bold] {to_print}")
+        _CONSOLE.print(f"[bold]{notificationName.ljust(25)}[/bold] {to_print}")
         if print_info:
             if info:
-                print(JSON.from_data(info, default=_default_json_encoder))
-            print()
+                _CONSOLE.print(JSON.from_data(info, default=_default_json_encoder))
+            _CONSOLE.print()
 
     return dump_notification
 
@@ -108,13 +119,38 @@ def tree(app_name, web, dom_id, attributes, all_attributes, list_attributes, lis
     element = _get_target_uielement(_get_target_application(app_name), web, dom_id)
 
     if json:
-        json_dump(element, attributes, all_attributes, list_attributes, list_actions)
+        _json_dump(element, attributes, all_attributes, list_attributes, list_actions)
     else:
-        tree_dump(element, attributes, all_attributes, list_attributes, list_actions)
+        _tree_dump(element, attributes, all_attributes, list_attributes, list_actions)
 
 
 def observe(app_name, events, attributes, all_attributes, list_attributes, list_actions, print_info):
     app = get_application_by_name(app_name)
-    observer = create_observer(app.pid, create_notification_dumper(attributes, print_info, all_attributes, list_attributes, list_actions))
+    observer = create_observer(app.pid, _create_notification_dumper(attributes, print_info, all_attributes, list_attributes, list_actions))
     observer.add_notifications(*(events or EVENTS))
     start()
+
+def inspect(app_name, dom_id, attributes, all_attributes, list_attributes, list_actions, show_subtree, json):
+    if dom_id:
+        _show(_get_target_uielement(app_name, None, dom_id))
+        return
+
+    app = _get_target_application(app_name)
+
+    def _onhover(element):
+        elem_str = repr(element)[:_CONSOLE.width].ljust(_CONSOLE.width)
+        _CONSOLE.print(elem_str, end="\r")
+
+    def _show(element):
+        if json:
+            _json_dump(element, attributes, all_attributes, list_attributes, list_actions, show_subtree=show_subtree)
+        else:
+            _tree_dump(element, attributes, all_attributes, list_attributes, list_actions, show_subtree=show_subtree)
+
+    try:
+        element = get_element_with_mouse(app, _onhover)
+    except NotImplementedError:
+        _print_error_and_exit("'highlight' pyax extra is required for inspecting element under mouse")
+
+    print()
+    _show(element)
