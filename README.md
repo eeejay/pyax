@@ -9,12 +9,18 @@ This library also Pythonifies `AXUIElement` and `AXObserver` and provides easy w
 ## Installation
 
 ```bash
-$ pip install pyax
+$ pip install pyax[highlight]
 ```
 
 ## Usage
 
 ### Command Line
+
+#### Inspecting an element
+
+The `inspect` command allows you to select an element under the pointer for inspection, and print out any interesting information about the object. This command requires the `highlight` extra.
+
+![inspect demo screencast](inspect_demo.gif)
 
 #### Examining the accessible tree
 
