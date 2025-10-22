@@ -28,7 +28,7 @@ from ._cli import observe as cli_observe
 from ._cli import inspect as cli_inspect
 from ._cli import DEFAULT_ATTRIBUTES
 
-app = typer.Typer()
+app = typer.Typer(add_completion=False)
 
 
 @app.command()
@@ -135,6 +135,27 @@ def inspect(
         show_subtree,
         json,
     )
+
+
+def version_callback(value: bool):
+    from . import __version__
+
+    print(__version__)
+    raise typer.Exit()
+
+
+@app.callback()
+def version(
+    version: bool = typer.Option(
+        None,
+        "--version",
+        "-v",
+        callback=version_callback,
+        is_eager=True,
+        help="Print the version and exit",
+    )
+):
+    pass
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 [project]
 name = "pyax"
-version = "0.3.0"
 description = "Client library for macOS accessibility"
 authors = [
   { name="Eitan Isaacson", email="eitan@monotonous.org" },
@@ -8,6 +7,7 @@ authors = [
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.7"
+dynamic = ["version"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -40,3 +40,6 @@ exclude = [
   "*.gif",
   ".gitignore",
 ]
+
+[tool.hatch.version]
+path = "src/pyax/__init__.py"
