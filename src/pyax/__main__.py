@@ -138,10 +138,10 @@ def inspect(
 
 
 def version_callback(value: bool):
-    from . import __version__
-
-    print(__version__)
-    raise typer.Exit()
+    if value:
+        from . import __version__
+        print(value, __version__)
+        raise typer.Exit()
 
 
 @app.callback()
