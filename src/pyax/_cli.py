@@ -238,6 +238,7 @@ def inspect(
     list_attributes,
     list_actions,
     depth,
+    show_parents,
     json,
 ):
     app = _get_target_application(app_name)
@@ -266,6 +267,25 @@ def inspect(
                 depth=depth,
             )
 
+    def _show_parent_chain(element):
+        _CONSOLE.print("[bold]Parent chain (selected -> root)[/bold]")
+        idx = 0
+        current = element
+        while current:
+            obj = _element_to_dict(
+                current, attributes, all_attributes, list_attributes, list_actions
+            )
+            if "AXChildren" in obj:
+                obj.pop("AXChildren")
+            _CONSOLE.print(
+                f"{idx:>2}: " + _obj_to_pretty_string(current, obj, role_markup="cyan")
+            )
+            parent = current.parent
+            if not parent or parent == current:
+                break
+            current = parent
+            idx += 1
+
     if dom_id:
         _show(_get_target_uielement(app_name, None, dom_id))
         return
@@ -279,3 +299,5 @@ def inspect(
 
     print()
     _show(element)
+    if show_parents:
+        _show_parent_chain(element)

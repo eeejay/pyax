@@ -134,6 +134,9 @@ def inspect(
     depth: Annotated[
         int, typer.Option(help="Depth of subtree to show")
     ] = 0,
+    show_parents: Annotated[
+        bool, typer.Option(help="Show parent chain from selected element to app root")
+    ] = False,
     json: Annotated[bool, typer.Option(help="Output in JSON format")] = False,
 ):
     cli_inspect(
@@ -144,6 +147,7 @@ def inspect(
         list_attributes,
         list_actions,
         -1 if show_subtree and depth == 0 else depth,
+        show_parents,
         json,
     )
 

@@ -109,6 +109,9 @@ class Highlighter(QMainWindow):
             if not flip_y
             else QtGui.QGuiApplication.primaryScreen().size().height() - rect["y"]
         )
-        painter.drawRect(rect["x"] - self.x(), y, rect["w"], rect["h"])
+        # Qt drawRect(x, y, w, h) expects ints; AX frame values can be floats.
+        painter.drawRect(
+            int(rect["x"] - self.x()), int(y), int(rect["w"]), int(rect["h"])
+        )
         painter.end()
         self.label.setPixmap(canvas)
